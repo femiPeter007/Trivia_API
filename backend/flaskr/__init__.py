@@ -185,33 +185,32 @@ def create_app(test_config=None):
         quiz_category = request.get_json()['quiz_category']
         print(quiz_category)
 
-        # query = Question.query.all()
         current_question = []
+        category_id = quiz_category['id']
 
-        if previous_questions and quiz_category is None:
+        if previous_questions is None or quiz_category is None:
             abort(400)
+        if quiz_category["id"] == 0:
+            category_questions = [question.format()
+                                  for question in Question.query.all()]
         else:
-            #Display a random question if no category is chosen
-            query = Question.query.all()
-            for question in query:
-                if question.id not in previous_questions:
-                    current_question.append(question.format())
-                # else: current_question = None
-            else:
-                #Display a radom question from a category is category is chosen:
-                query = Question.query.filter_by(category=category.id).all()
-                for question in query:
-                    if question.id in previous_questions:
-                        current_question.append(question.format())
-        return jsonify({'question': random.choice(current_question), 'success': True})
-            
+            category_questions = [
+                question.format() for question in Question.query.filter(
+                    Question.category == quiz_category['id']).all()]
 
-    @app.errorhandler(404)
-    def not_found(error):
-        return (
-            jsonify({"success": False, "error": 404, "message": "resource not found"}),
-            404,
-        )
+        while True:
+            random_question = random.choice(category_questions)
+            if random_question['id'] not in previous_questions:
+                break
+            else:
+                return jsonify({
+                    "question": None
+                })
+
+        return jsonify({
+            "question": random_question
+        }), 200
+
 
     @app.errorhandler(422)
     def unprocessable(error):

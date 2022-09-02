@@ -125,16 +125,6 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["message"], "bad request")
 
 
-
-    def test_422_if_question_does_not_exist(self):
-        res = self.client().delete("/questions/1000")
-        data = json.loads(res.data)
-
-        self.assertEqual(res.status_code, 422)
-        self.assertEqual(data["success"], False)
-        self.assertEqual(data["message"], "unprocessable")
-
-
     def test_create_new_question(self):
         res = self.client().post("/questions", json=self.new_question)
         data = json.loads(res.data)
@@ -151,6 +141,51 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 405)
         self.assertEqual(data["success"], False)
         self.assertEqual(data["message"], "server error")
+
+    def test_delete_question(self):
+        res = self.client().post('/questions', json=self.new_question)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
+        # self.assertTrue(data["deleted"])
+        self.assertTrue(data['total_questions'])
+
+
+    def test_404_delete_question(self):
+        # deletes a question that does not exist
+        res = self.client().delete("/questions/1000")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'unprocessable')
+
+    def test_play_quiz_by_category(self):
+        quiz = {
+            'previous_questions': [1, 2, 3],
+            'quiz_category': {
+                'type': 'Science',
+                'id': '1'
+            }
+        }
+        check = self.client().post('/quizzes', json=quiz)
+        data = json.loads(check.data)
+
+        self.assertEqual(check.status_code, 200)
+        # self.assertTrue(data['success'])
+        self.assertTrue(data['question']['question'])
+        # check if the question is not in the previous question
+        self.assertTrue(data['question']['id'] not in quiz['previous_questions'])
+
+    def test_error_400_play_quiz(self):
+        # play quiz with no given parameter
+        check = self.client().post('/quizzes')
+        data = json.loads(check.data)
+
+        self.assertEqual(check.status_code, 405)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'server error')
 
 
 
