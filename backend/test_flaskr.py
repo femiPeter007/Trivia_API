@@ -60,11 +60,11 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["success"], True)
         self.assertGreater(len(data["categories"]), 0)
 
-    def test_404_sent_requesting_invalid_category(self):
+    def test_400_sent_requesting_invalid_category(self):
         res = self.client().get("/categories/1000")
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 404)
+        self.assertEqual(res.status_code, 400)
         self.assertEqual(data["success"], False)
         self.assertEqual(data["message"], "resource not found")
 
@@ -79,11 +79,11 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(len(data["questions"]))
         self.assertTrue(len(data["categories"]))
 
-    def test_404_sent_requesting_beyond_valid_page(self):
+    def test_400_sent_requesting_beyond_valid_page(self):
         res = self.client().get("/questions?page=1000")
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 404)
+        self.assertEqual(res.status_code, 400)
         self.assertEqual(data["success"], False)
         self.assertEqual(data["message"], "resource not found")
 
@@ -97,13 +97,13 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data["total_questions"])
 
 
-    def test_404_for_invalid_questions_search(self):
+    def test_400_for_invalid_questions_search(self):
         res = self.client().post("/questions/search", json={"searchTerm": "winkdbfikrui"})
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 404)
+        self.assertEqual(res.status_code, 400)
         self.assertEqual(data["success"], False)
-        self.assertEqual(data["message"], "resource not found")
+        self.assertEqual(data["message"], "bad request")
 
 
 
@@ -134,11 +134,11 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data["created"])
         self.assertTrue(data['total_questions'])
 
-    def test_422_if_question_creation_fails(self):
+    def test_500_if_question_creation_fails(self):
         res = self.client().post("/questions")
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 405)
+        self.assertEqual(res.status_code, 500)
         self.assertEqual(data["success"], False)
         self.assertEqual(data["message"], "server error")
 
@@ -178,12 +178,12 @@ class TriviaTestCase(unittest.TestCase):
         # check if the question is not in the previous question
         self.assertTrue(data['question']['id'] not in quiz['previous_questions'])
 
-    def test_error_400_play_quiz(self):
+    def test_error_500_play_quiz(self):
         # play quiz with no given parameter
         check = self.client().post('/quizzes')
         data = json.loads(check.data)
 
-        self.assertEqual(check.status_code, 405)
+        self.assertEqual(check.status_code, 500)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'server error')
 

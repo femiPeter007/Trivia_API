@@ -146,7 +146,7 @@ def create_app(test_config=None):
                 })
 
         except:
-            abort(404)
+            abort(400)
 
     
     @app.route('/categories/<int:category_id>/questions', methods=['GET'])
@@ -226,6 +226,13 @@ def create_app(test_config=None):
             400
         )
 
+    @app.errorhandler(404)
+    def bad_request(error):
+        return (
+            jsonify({"success": False, "error": 404, "message": "resource not found"}),
+            400
+        )
+
     @app.errorhandler(405)
     def not_found(error):
         return (
@@ -237,7 +244,7 @@ def create_app(test_config=None):
     def not_found(error):
         return (
             jsonify({"success": False, "error": 500, "message": "server error"}),
-            405,
+            500,
         )
 
 
